@@ -462,6 +462,18 @@ function setScanMode(mode) {
   scan();
 }
 
+// ─── Сворачиваемые секции панели ───
+document.querySelectorAll(".section-toggle").forEach(button => {
+  button.addEventListener("click", () => {
+    const section = button.closest(".section");
+    const content = document.getElementById(button.getAttribute("aria-controls"));
+    const willExpand = button.getAttribute("aria-expanded") !== "true";
+    button.setAttribute("aria-expanded", String(willExpand));
+    section.classList.toggle("collapsed", !willExpand);
+    content.hidden = !willExpand;
+  });
+});
+
 // ─── События ───
 document.querySelectorAll(".dimension button").forEach(button => {
   button.addEventListener("click", () => {
