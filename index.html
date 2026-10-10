@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>COE Seed Scanner</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <style>
     :root {
       --bg: #050912;
@@ -130,6 +131,157 @@
       letter-spacing: .09em;
       color: #aab8c8;
       text-transform: uppercase;
+    }
+
+    .section-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      height: auto;
+      min-height: 18px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: #aab8c8;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-align: left;
+      text-transform: uppercase;
+    }
+
+    .section-toggle:hover,
+    .section-toggle:active {
+      border: 0;
+      background: transparent;
+      color: #d6e4f2;
+    }
+
+    .collapse-chevron {
+      width: 7px;
+      height: 7px;
+      flex: none;
+      border-right: 1px solid #7890aa;
+      border-bottom: 1px solid #7890aa;
+      transform: rotate(45deg) translateY(-2px);
+      transition: transform .16s ease;
+    }
+
+    .section.collapsed .collapse-chevron {
+      transform: rotate(-45deg);
+    }
+
+    .section-content {
+      margin-top: 9px;
+    }
+
+    .section.collapsed .section-content {
+      display: none;
+    }
+
+    .number-input-wrap {
+      display: flex;
+      align-items: stretch;
+      width: 100%;
+      min-width: 0;
+      height: 32px;
+      border: 1px solid #1a2a3e;
+      border-radius: var(--radius);
+      background: var(--input);
+      overflow: hidden;
+      transition: border-color .15s, background .15s;
+    }
+
+    .number-input-wrap:hover,
+    .number-input-wrap:focus-within {
+      border-color: #365f8d;
+      background: #08111d;
+    }
+
+    .number-input-wrap input[type=number] {
+      flex: 1;
+      width: 0;
+      min-width: 0;
+      height: 30px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      padding: 6px 8px;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    .number-input-wrap input[type=number]::-webkit-inner-spin-button,
+    .number-input-wrap input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .number-stepper {
+      display: flex;
+      flex-direction: column;
+      width: 21px;
+      flex: none;
+      border-left: 1px solid #1a2a3e;
+      background: #0b1624;
+    }
+
+    .number-stepper button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 15px;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: #6f8cac;
+      font-size: 9px;
+      line-height: 1;
+    }
+
+    .number-stepper button + button {
+      border-top: 1px solid #1a2a3e;
+    }
+
+    .number-stepper button:hover {
+      background: #172b41;
+      color: #d4e6f8;
+    }
+
+    .selection-panel {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      z-index: 5;
+      width: min(320px, calc(100% - 24px));
+      max-height: 45%;
+      overflow: auto;
+      padding: 10px;
+      border: 1px solid #20344d;
+      border-radius: var(--radius);
+      background: rgba(7, 13, 23, .96);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .3);
+      backdrop-filter: blur(8px);
+    }
+
+    .selection-panel-title {
+      margin-bottom: 7px;
+      color: #9eafc2;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .selection-panel .selection {
+      border-left-color: #4779ae;
+      background: #091421;
     }
 
     label {
@@ -481,16 +633,11 @@
       cursor: grabbing
     }
 
-    .overlay {
+    .statusbar {
       position: absolute;
       left: 12px;
-      right: 12px;
       top: 12px;
-      pointer-events: none;
       z-index: 3;
-    }
-
-    .statusbar {
       display: inline-flex;
       align-items: center;
       gap: 9px;
@@ -589,6 +736,10 @@
         border-right: 0;
         border-bottom: 1px solid #162337;
       }
+
+      .selection-panel {
+        max-height: 38%;
+      }
     }
   </style>
 </head>
@@ -599,16 +750,6 @@
       <div class="brand">
         <h1>COE Seed Scanner</h1>
         <div class="subtitle">Create Ore Excavation · 1.21.1</div>
-      </div>
-
-      <div class="section">
-        <h2>Управление</h2>
-        <div class="hint">
-          <b>ЛКМ</b> — перетаскивание карты<br>
-          <b>Колесо</b> — масштаб<br>
-          <b>ЛКМ по метке</b> — выбрать точку<br>
-          <b>Двойной ЛКМ</b> — задать центр
-        </div>
       </div>
 
       <div class="section">
@@ -701,27 +842,18 @@
         <div id="veinList" class="vein-list"></div>
       </div>
 
-      <div class="section">
-        <h2>Точка</h2>
-        <div id="selectionInfo" class="info hint">Нажми ЛКМ по метке</div>
-      </div>
-
-      <div class="section">
-        <div class="btnrow">
-          <button id="savePng">Сохранить</button>
-          <button id="resetAll">Сброс</button>
-        </div>
-      </div>
     </aside>
 
     <main class="map-wrap" id="mapWrap">
       <canvas id="canvas"></canvas>
-      <div class="overlay">
-        <div class="statusbar">
-          <span class="badge" id="dimBadge">ВЕРХНИЙ</span>
-          <span id="statusText">Готово</span>
-        </div>
+      <div class="statusbar">
+        <span class="badge" id="dimBadge">ВЕРХНИЙ</span>
+        <span id="statusText">Готово</span>
       </div>
+      <section class="selection-panel" id="selectionPanel" aria-live="polite">
+        <div class="selection-panel-title">Выбранная жила</div>
+        <div id="selectionInfo" class="info hint">Нажми ЛКМ по метке</div>
+      </section>
       <div class="tooltip" id="tooltip"></div>
     </main>
   </div>
