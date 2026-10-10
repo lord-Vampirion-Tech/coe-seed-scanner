@@ -582,7 +582,7 @@ document.querySelectorAll('input[type="number"]').forEach(input => {
   down.addEventListener("click", () => change(-1));
   stepper.append(up, down);
   wrap.appendChild(stepper);
-}
+});
 
 // ─── Загрузка карт ───
 function setupMapUpload(map, dimKey) {
