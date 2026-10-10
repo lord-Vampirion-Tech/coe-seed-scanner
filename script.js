@@ -31,6 +31,7 @@ const REGION_Z_MULT = 132897987541n;
 const $ = id => document.getElementById(id);
 const canvas = $("canvas"), ctx = canvas.getContext("2d"), mapWrap = $("mapWrap");
 const tooltip = $("tooltip"), veinList = $("veinList"), selectionInfo = $("selectionInfo");
+const selectionPanel = $("selectionPanel");
 const statusText = $("statusText"), dimBadge = $("dimBadge");
 
 const mapImageInputOW = $("mapImageInputOW"), mapImageNameOW = $("mapImageNameOW");
@@ -143,7 +144,8 @@ function scan() {
     fitToScanRectangle();
     updateStatus();
     scheduleDraw();
-    selectionInfo.textContent = "Нажми ЛКМ по метке";
+    clearSelection();
+    updateVisibleVeins();
   } catch (e) {
     statusText.textContent = "Ошибка: " + e.message;
     console.error(e);
@@ -367,8 +369,16 @@ function draw() {
 }
 
 // ─── Выбор точки ───
+function clearSelection() {
+  selectedGroupKey = null;
+  selectionInfo.textContent = "Нажми ЛКМ по метке";
+  selectionPanel.classList.remove("has-selection");
+  scheduleDraw();
+}
+
 function setSelection(g) {
   selectedGroupKey = g.key;
+  selectionPanel.classList.add("has-selection");
   const v = g.veins[0];
   const dimLabel = v.dimension === "overworld" ? "overworld" : "nether";
   let html = `<div class="selection">`;
@@ -436,6 +446,13 @@ function escapeHtml(s) {
     .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
+function updateVisibleVeins() {
+  for (const row of veinList.querySelectorAll(".vein")) {
+    const input = row.querySelector("input");
+    row.hidden = VEINS.find(v => v.id === input.dataset.id)?.dimension !== currentDimension;
+  }
+}
+
 function setScanMode(mode) {
   scanMode = mode;
   $("modeCenter").classList.toggle("active", mode === "center");
@@ -451,6 +468,8 @@ document.querySelectorAll(".dimension button").forEach(button => {
     currentDimension = button.dataset.dim;
     document.querySelectorAll(".dimension button").forEach(x => x.classList.remove("active"));
     button.classList.add("active");
+    updateVisibleVeins();
+    clearSelection();
     scan();
   });
 });
@@ -461,23 +480,12 @@ $("scan").onclick = scan;
 $("resetView").onclick = () => { fitToScanRectangle(); scheduleDraw(); };
 
 $("allOn").onclick = () => {
-  document.querySelectorAll(".vein input").forEach(x => x.checked = true);
+  veinList.querySelectorAll(".vein:not([hidden]) input").forEach(x => x.checked = true);
   scan();
 };
 $("allOff").onclick = () => {
-  document.querySelectorAll(".vein input").forEach(x => x.checked = false);
+  veinList.querySelectorAll(".vein:not([hidden]) input").forEach(x => x.checked = false);
   scan();
-};
-
-$("savePng").onclick = () => {
-  const a = document.createElement("a");
-  a.download = "coe-map.png";
-  a.href = canvas.toDataURL("image/png");
-  a.click();
-};
-
-$("resetAll").onclick = () => {
-  if (confirm("Сбросить все настройки?")) location.reload();
 };
 
 ["seed", "centerX", "centerZ", "radius", "cornerMinX", "cornerMinZ", "cornerMaxX", "cornerMaxZ"]
@@ -490,6 +498,7 @@ canvas.addEventListener("mousedown", e => {
   const r = canvas.getBoundingClientRect();
   const hit = findGroupAt(e.clientX - r.left, e.clientY - r.top);
   if (hit) { setSelection(hit); return; }
+  clearSelection();
   drag = { x: e.clientX, y: e.clientY, ox: view.offsetX, oz: view.offsetZ };
   canvas.classList.add("dragging");
   hideTooltip();
@@ -541,6 +550,38 @@ for (const v of VEINS) {
     <span class="count">0</span>`;
   row.querySelector("input").addEventListener("change", scan);
   veinList.appendChild(row);
+}
+updateVisibleVeins();
+
+// Style native number inputs with matching custom steppers. The text field stays editable.
+document.querySelectorAll('input[type="number"]').forEach(input => {
+  const wrap = document.createElement("div");
+  wrap.className = "number-input-wrap";
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+  const stepper = document.createElement("span");
+  stepper.className = "number-stepper";
+  const up = document.createElement("button");
+  up.type = "button";
+  up.setAttribute("aria-label", "Увеличить значение");
+  up.innerHTML = "&#9652;";
+  const down = document.createElement("button");
+  down.type = "button";
+  down.setAttribute("aria-label", "Уменьшить значение");
+  down.innerHTML = "&#9662;";
+  const step = () => Number(input.step) > 0 ? Number(input.step) : 1;
+  const change = delta => {
+    const min = input.min === "" ? -Infinity : Number(input.min);
+    const max = input.max === "" ? Infinity : Number(input.max);
+    const current = input.value === "" ? 0 : Number(input.value);
+    input.value = String(Math.min(max, Math.max(min, current + delta * step())));
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  };
+  up.addEventListener("click", () => change(1));
+  down.addEventListener("click", () => change(-1));
+  stepper.append(up, down);
+  wrap.appendChild(stepper);
 }
 
 // ─── Загрузка карт ───
