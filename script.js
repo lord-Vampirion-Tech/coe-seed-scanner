@@ -14,6 +14,7 @@ const VEINS = [
   { id: "zinc", label: "Цинк", dimension: "overworld", spacing: 128, separation: 8, salt: 1768524180, priority: 0, color: "#82b4c9", texture: "assets/veins/zinc_ingot.png" },
   { id: "glowstone", label: "Светокамень", dimension: "nether", spacing: 128, separation: 8, salt: 642680510, priority: 0, color: "#ffe477", texture: "assets/veins/glowstone_dust.png" },
   { id: "ancient_debris", label: "Древние обломки", dimension: "nether", spacing: 512, separation: 128, salt: 408736440, priority: 0, color: "#8f5b48", texture: "assets/veins/netherite_scrap.png" },
+  { id: "amethyst", label: "Аметист", dimension: "overworld", spacing: 256, separation: 64, salt: 73482915, priority: 0, color: "#b58cff", texture: "assets/veins/amethyst.svg" },
   { id: "quartz", label: "Кварц", dimension: "nether", spacing: 128, separation: 8, salt: 1434658661, priority: 0, color: "#eee2d0", texture: "assets/veins/quartz.png" },
 ];
 
